@@ -94,8 +94,13 @@ function detectTypeFromData(data) {
     return {type: 'not_spec'};
   }
 
-  if (typeof spec.swaggerVersion === 'string')
+  if (typeof spec.swaggerVersion === 'string') {
+    if (typeof spec.resourcePath === 'string') {
+      console.log('Swagger 1.x resource file');
+      return {type: 'not_spec'};
+    }
     return {type: 'swagger_1', version: spec.swaggerVersion};
+  }
 
   if (spec.swagger === '2.0' || spec.swagger === 2.0)
     return {type: 'swagger_2', version: '2.0'};
