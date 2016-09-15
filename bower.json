@@ -2,7 +2,9 @@
   "name": "specradar",
   "private": true,
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+    "js-yaml": "^3.6.1"
+  },
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.0.2"
