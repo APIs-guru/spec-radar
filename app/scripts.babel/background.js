@@ -47,11 +47,27 @@ function makeRequest (url) {
 
 function detectTypeFromData(data) {
   var spec = undefined;
+  var data_type = 'str';
+
   try {
     spec = JSON.parse(data)
+    data_type = 'json';
   }
   catch (e) {
     console.log('Not a JSON');
+    try {
+      spec = jsyaml.safeLoad(data)
+      data_type = 'yaml';
+    } catch (e) {
+      console.log('Not a YAML');
+      try {
+        var xmlParser = new DOMParser();
+        spec = xmlParser.parseFromString(data, 'text/xml');
+        data_type = 'xml';
+      } catch (e) {
+        console.log('Not a XML');
+      }
+    }
   }
 
   if (spec === undefined) {
