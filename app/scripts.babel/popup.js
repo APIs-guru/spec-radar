@@ -22,7 +22,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
 
   let $copyButton = document.createElement('a');
   $copyButton.innerHTML = 'Copy to clipboard';
-  $copyButton.addEventListener('click', copyToClipboard);
+  $copyButton.addEventListener('click', () => copyToClipboard(url));
   $buttons.appendChild($copyButton);
 
   for (let link of links) {
@@ -41,8 +41,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
 
 chrome.runtime.sendMessage({from: 'popup', subject: 'getData'});
 
-function copyToClipboard() {
-
+function copyToClipboard(url) {
+  chrome.runtime.sendMessage({from: 'popup', subject: 'copy', data: url});
+  window.close();
 }
 function disableExt() {
   chrome.runtime.sendMessage({from: 'popup', subject: 'disable'});
