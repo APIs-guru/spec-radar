@@ -10,6 +10,7 @@
   "default_locale": "en",
   "background": {
     "scripts": [
+      "bower_components/js-yaml/dist/js-yaml.min.js",
       "scripts/chromereload.js",
       "scripts/background.js"
     ]
