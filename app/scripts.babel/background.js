@@ -1,10 +1,25 @@
 'use strict';
 
-chrome.runtime.onInstalled.addListener(details => {
-  console.log('previousVersion', details.previousVersion);
+var enabled = false;
+
+chrome.browserAction.onClicked.addListener(function (tab) {
+  console.log('test');
+  enabled = !enabled;
+  if (enabled) {
+    chrome.tabs.reload(tab.id);
+    enableIcon(tab.id);
+  } else {
+    disableIcon(tab.id);
+  }
 });
 
-chrome.browserAction.setBadgeText({text: '\'Allo'});
+chrome.webRequest.onHeadersReceived.addListener((details) => {
+  if (!enabled) return;
+  detectTypeFromUrl(details.url).then((res) => {
+    if (res.type === 'not_spec') return;
+    specDetected(details.url, res.type, details.tabId);
+  });
+}, {urls: ['<all_urls>'], types: ['xmlhttprequest']});
 
 function makeRequest (url) {
   return new Promise(function (resolve, reject) {
@@ -66,8 +81,23 @@ function detectTypeFromUrl(url) {
     .then(detectTypeFromData);
 }
 
-detectTypeFromUrl('http://petstore.swagger.io/v2/swagger.json')
-  .then(result => console.log(result.type));
+function specDetected(url, type, tabId) {
+  chrome.browserAction.setBadgeText({tabId, text: type.substring(0,2).toUpperCase()});
+  //chrome.browserAction.enable(tabId);
+}
 
+function disableIcon(tabId) {
+  chrome.browserAction.setIcon({ path: {
+    '38': 'images/icon-silver-38.png',
+    '128': 'images/icon-silver-128.png'
+  }});
 
-console.log('\'Allo \'Allo! Event Page for Browser Action');
+  chrome.browserAction.setBadgeText({tabId, text: '' });
+}
+
+function enableIcon(tabId) {
+  chrome.browserAction.setIcon({ path: {
+    '38': 'images/icon-38.png',
+    '128': 'images/icon-128.png'
+  }});
+}
