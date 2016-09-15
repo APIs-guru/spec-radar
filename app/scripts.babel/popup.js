@@ -5,7 +5,7 @@ const LINKS = {
     { title: 'SwaggerUI', urlTmpl: 'http://petstore.swagger.io/?url=https://crossorigin.me/{link}' },
   ],
   'swagger_2': [
-    { title: 'SwaggerUI', urlTmpl: 'http://petstore.swagger.io/?url={link}' },
+    { title: 'SwaggerUI', urlTmpl: 'http://petstore.swagger.io/?url=https://crossorigin.me/{link}' },
   ]
 }
 
@@ -18,7 +18,10 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
   let links = LINKS[type];
   if (!links) links = [];
 
-
+  let $copyButton = document.createElement('a');
+  $copyButton.innerHTML = 'Copy to clipboard';
+  $copyButton.addEventListener('click', copyToClipboard);
+  $buttons.appendChild($copyButton);
 
   for (let link of links) {
     let $aTag = document.createElement('a');
@@ -27,12 +30,19 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
     $aTag.innerHTML = link.title;
     $buttons.appendChild($aTag);
   }
+
+  let $disableButton = document.createElement('a');
+  $disableButton.innerText = 'Disable Extension';
+  $disableButton.addEventListener('click', disableExt);
+  $buttons.appendChild($disableButton);
 });
 
 chrome.runtime.sendMessage({from: 'popup', subject: 'getData'});
 
-var $disableButton = document.getElementById('disable_button');
-$disableButton.addEventListener('click', function() {
+function copyToClipboard() {
+
+}
+function disableExt() {
   chrome.runtime.sendMessage({from: 'popup', subject: 'disable'});
   window.close();
-});
+}
