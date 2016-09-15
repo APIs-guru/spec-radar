@@ -28,6 +28,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender) {
   if ((msg.from === 'popup') && (msg.subject === 'copy')) {
     copyToClipboard(msg.data, 'text/plain')
   }
+
+  if ((msg.from === 'popup') && (msg.subject === 'sdk')) {
+    let url = downloadSDK(msg.data, 'text/plain');
+    openPage(url);
+  }
 });
 
 function toggleRadar(tab) {
@@ -217,5 +222,9 @@ function copyToClipboard(str, mimetype) {
     event.clipboardData.setData(mimetype, str);
     event.preventDefault();
   };
-  document.execCommand("Copy", false, null);
+  document.execCommand('Copy', false, null);
+}
+
+function openPage(url) {
+  chrome.tabs.create({ url: url });
 }
