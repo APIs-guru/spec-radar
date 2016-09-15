@@ -176,3 +176,34 @@ function doInCurrentTab(tabCallback) {
     function (tabArray) { tabCallback(tabArray[0]); }
   );
 }
+
+function generateSdkUrl(lang, specUrl) {
+  var url = 'https://generator.swagger.io/api/gen/clients/' + lang;
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('Spec-Radar', '1');
+
+    xhr.onload = function () {
+      if (this.status >= 200 && this.status < 300) {
+        resolve(JSON.parse(xhr.response).link);
+      } else {
+        reject({
+          status: this.status,
+          statusText: xhr.statusText
+        });
+      }
+    };
+    xhr.onerror = function () {
+      reject({
+        status: this.status,
+        statusText: xhr.statusText
+      });
+    };
+
+    var payload = JSON.stringify({swaggerUrl: specUrl});
+    xhr.send(payload);
+  });
+}
