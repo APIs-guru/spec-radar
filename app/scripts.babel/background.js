@@ -30,8 +30,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender) {
   }
 
   if ((msg.from === 'popup') && (msg.subject === 'sdk')) {
-    let url = downloadSDK(msg.data, 'text/plain');
-    openPage(url);
+    generateSdkUrl(msg.data.lang, msg.data.url).then(url => openPage(url));
   }
 });
 
