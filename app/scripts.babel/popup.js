@@ -6,6 +6,8 @@ const LINKS = {
   ],
   'swagger_2': [
     { title: 'SwaggerUI', urlTmpl: 'http://petstore.swagger.io/?url=https://crossorigin.me/{link}' },
+    { title: 'SwaggerEditor', urlTmpl: 'http://editor.swagger.io/#/?import={link}' },
+    { title: 'ReDoc', urlTmpl: 'http://rebilly.github.io/ReDoc/?url=https://crossorigin.me/{link}'}
   ]
 }
 
