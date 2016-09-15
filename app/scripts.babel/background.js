@@ -1,9 +1,32 @@
 'use strict';
 
 var enabled = false;
+var port;
+var tabSpecs = {};
 
-chrome.browserAction.onClicked.addListener(function (tab) {
-  console.log('test');
+chrome.runtime.onMessage.addListener(function (msg, sender) {
+  // First, validate the message's structure
+  if ((msg.from === 'popup') && (msg.subject === 'getData')) {
+    doInCurrentTab((tab) => {
+      if (!tabSpecs[tab.id]) return;
+      chrome.runtime.sendMessage({
+        from:    'background',
+        subject: 'data',
+        data: tabSpecs[tab.id]
+      });
+    });
+  }
+
+  if ((msg.from === 'popup') && (msg.subject === 'disable')) {
+    enabled = false;
+    doInCurrentTab((tab) => {
+      disableIcon(tab.id);
+      chrome.browserAction.setPopup({tabId: tab.id, popup: ''});
+    });
+  }
+});
+
+function toggleRadar(tab) {
   enabled = !enabled;
   if (enabled) {
     chrome.tabs.reload(tab.id);
@@ -11,20 +34,31 @@ chrome.browserAction.onClicked.addListener(function (tab) {
   } else {
     disableIcon(tab.id);
   }
+}
+
+chrome.browserAction.onClicked.addListener(function (tab) {
+  toggleRadar(tab);
 });
 
-chrome.webRequest.onHeadersReceived.addListener((details) => {
+chrome.webRequest.onBeforeSendHeaders.addListener((details) => {
   if (!enabled) return;
+  for (var i = 0; i < details.requestHeaders.length; ++i) {
+    if (details.requestHeaders[i].name === 'Spec-Radar') {
+      return
+    }
+  }
   detectTypeFromUrl(details.url).then((res) => {
     if (res.type === 'not_spec') return;
     specDetected(details.url, res.type, details.tabId);
   });
-}, {urls: ['<all_urls>'], types: ['xmlhttprequest']});
+}, {urls: ['<all_urls>'], types: ['xmlhttprequest']}, ['requestHeaders']);
 
 function makeRequest (url) {
   return new Promise(function (resolve, reject) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
+    xhr.setRequestHeader('Spec-Radar', '1');
+
     xhr.onload = function () {
       if (this.status >= 200 && this.status < 300) {
         resolve(xhr.response);
@@ -66,7 +100,6 @@ function detectTypeFromData(data) {
     data_type = 'json';
   }
   catch (e) {
-    console.log('Not a JSON');
     try {
       spec = jsyaml.safeLoad(data)
       data_type = 'yaml';
@@ -83,7 +116,7 @@ function detectTypeFromData(data) {
   }
 
   if (spec === undefined) {
-    console.log('Can not parse');
+    //console.log('Can not parse');
     return {type: 'not_spec'};
   }
 
@@ -116,7 +149,9 @@ function detectTypeFromUrl(url) {
 
 function specDetected(url, type, tabId) {
   chrome.browserAction.setBadgeText({tabId, text: type.substring(0,2).toUpperCase()});
-  //chrome.browserAction.enable(tabId);
+  chrome.browserAction.setPopup({tabId, popup: 'popup.html'});
+
+  tabSpecs[tabId] = {url, type};
 }
 
 function disableIcon(tabId) {
@@ -133,4 +168,11 @@ function enableIcon(tabId) {
     '38': 'images/icon-38.png',
     '128': 'images/icon-128.png'
   }});
+}
+
+function doInCurrentTab(tabCallback) {
+  chrome.tabs.query(
+    { currentWindow: true, active: true },
+    function (tabArray) { tabCallback(tabArray[0]); }
+  );
 }
