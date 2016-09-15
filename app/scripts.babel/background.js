@@ -46,8 +46,20 @@ function makeRequest (url) {
 }
 
 function detectTypeFromData(data) {
-  var spec = undefined;
-  var data_type = 'str';
+  function isPrefix(prefix) {
+    return (prefix === data.substring(0, prefix.length));
+  }
+
+  if (isPrefix('#%RAML 0.8'))
+    return {type: 'raml', version: '0.8'};
+  if (isPrefix('#%RAML 1.0'))
+    return {type: 'raml', version: '1.0'};
+
+  if (isPrefix('FORMAT: '))
+    return {type: 'api_blueprint', version: '1A'};
+
+  var spec;
+  var data_type;
 
   try {
     spec = JSON.parse(data)
